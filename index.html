@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#f5f2ee">
+
+  <!-- iPhone / iPad -->
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Пянсешка"
+  >
+
+  <!-- Android -->
+  <meta
+    name="application-name"
+    content="Пянсешка"
+  >
+
+  <!-- Иконка для iPhone -->
+  <link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="./apple-touch-icon.png"
+  >
+
+  <!-- Иконки браузера -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="192x192"
+    href="./pyanse_icon_192.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="512x512"
+    href="./pyanse_icon_512.png"
+  >
+
+  <!-- PWA -->
+  <link
+    rel="manifest"
+    href="./manifest.json"
+  >
+
+  <title>Пянсешка</title>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #f5f2ee;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app {
+      text-align: center;
+      padding: 30px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      color: #777;
+      font-size: 17px;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <h1>Пянсешка</h1>
+    <p>Система ревизий</p>
+  </div>
+
+  <script>
+    const APP_URL =
+      'https://script.google.com/macros/s/AKfycbzMi9OtrEJZU7Uw1SxjLpPYdL664MANvYbwcFLZAMXzdOLmiJloMQxT1KR6Wl35-7Rp/exec';
+
+    /*
+     * Если страница запущена как установленное приложение,
+     * сразу открываем рабочую Пянсешку.
+     */
+    const isStandalone =
+      window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isStandalone) {
+      window.location.replace(APP_URL);
+    }
+  </script>
+
+</body>
+</html>
