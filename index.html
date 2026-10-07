@@ -2,63 +2,34 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
-
   <meta name="theme-color" content="#f5f2ee">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Пянсешка">
+  <meta name="application-name" content="Пянсешка">
 
-  <!-- iPhone / iPad -->
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
-
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="default"
-  >
-
-  <meta
-    name="apple-mobile-web-app-title"
-    content="Пянсешка"
-  >
-
-  <!-- Android -->
-  <meta
-    name="application-name"
-    content="Пянсешка"
-  >
-
-  <!-- Иконка для iPhone -->
   <link
     rel="apple-touch-icon"
     sizes="180x180"
     href="./apple-touch-icon.png"
   >
-
-  <!-- Иконки браузера -->
   <link
     rel="icon"
     type="image/png"
     sizes="192x192"
     href="./pyanse_icon_192.png"
   >
-
   <link
     rel="icon"
     type="image/png"
     sizes="512x512"
     href="./pyanse_icon_512.png"
   >
-
-  <!-- PWA -->
-  <link
-    rel="manifest"
-    href="./manifest.json"
-  >
+  <link rel="manifest" href="./manifest.json">
 
   <title>Пянсешка</title>
 
@@ -87,8 +58,11 @@
       box-sizing: border-box;
       width: 100%;
       height: 100%;
-      padding: env(safe-area-inset-top) env(safe-area-inset-right)
-        env(safe-area-inset-bottom) env(safe-area-inset-left);
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
     }
 
     iframe {
@@ -98,18 +72,215 @@
       border: 0;
       background: #f5f2ee;
     }
+
+    .splash {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      padding: 32px;
+      background: #f5f2ee;
+      color: #222;
+      text-align: center;
+      opacity: 1;
+      transition: opacity .24s ease;
+    }
+
+    .splash.done {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash-icon {
+      width: 108px;
+      height: 108px;
+      border-radius: 26px;
+      margin-bottom: 22px;
+    }
+
+    .splash h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .splash-subtitle {
+      margin: 9px 0 27px;
+      color: #777;
+      font-size: 17px;
+    }
+
+    .spinner {
+      width: 30px;
+      height: 30px;
+      border: 3px solid #e5dfd7;
+      border-top-color: #eaaa32;
+      border-radius: 50%;
+      animation: spin .85s linear infinite;
+    }
+
+    .splash-status {
+      margin: 16px 0 0;
+      max-width: 320px;
+      font-size: 15px;
+      color: #777;
+      line-height: 1.5;
+    }
+
+    .retry {
+      margin-top: 20px;
+      min-height: 48px;
+      padding: 12px 24px;
+      border: 0;
+      border-radius: 12px;
+      background: #222;
+      color: white;
+      font: inherit;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .splash {
+        transition: none;
+      }
+
+      .spinner {
+        animation-duration: 2s;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <section
+    class="splash"
+    id="splash"
+    aria-label="Загрузка приложения"
+  >
+    <img
+      class="splash-icon"
+      src="./pyanse_icon_192.png"
+      alt=""
+      width="108"
+      height="108"
+    >
+
+    <h1>Пянсешка</h1>
+
+    <p class="splash-subtitle">
+      Рабочая платформа ПЯН-СЕ
+    </p>
+
+    <div class="spinner" aria-hidden="true"></div>
+
+    <p
+      class="splash-status"
+      id="splashStatus"
+      role="status"
+      aria-live="polite"
+    >
+      Загружаем приложение…
+    </p>
+
+    <button
+      class="retry"
+      id="retry"
+      type="button"
+      hidden
+    >
+      Повторить загрузку
+    </button>
+  </section>
 
   <main class="app">
     <iframe
+      id="appFrame"
       title="Рабочая среда Пянсешка"
-      src="https://script.google.com/macros/s/AKfycbzMi9OtrEJZU7Uw1SxjLpPYdL664MANvYbwcFLZAMXzdOLmiJloMQxT1KR6Wl35-7Rp/exec"
+      data-src="https://script.google.com/macros/s/AKfycbzMi9OtrEJZU7Uw1SxjLpPYdL664MANvYbwcFLZAMXzdOLmiJloMQxT1KR6Wl35-7Rp/exec"
       sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"
     ></iframe>
   </main>
 
+  <script>
+    const frame = document.getElementById('appFrame');
+    const splash = document.getElementById('splash');
+    const status = document.getElementById('splashStatus');
+    const retry = document.getElementById('retry');
+
+    let slowTimer;
+    let ready = false;
+
+    window.addEventListener('message', event => {
+      let host;
+
+      try {
+        host = new URL(event.origin).hostname;
+      } catch (_) {
+        return;
+      }
+
+      const trusted =
+        event.origin.startsWith('https://') &&
+        (
+          host === 'script.google.com' ||
+          host === 'script.googleusercontent.com' ||
+          host.endsWith('.googleusercontent.com')
+        );
+
+      if (
+        !trusted ||
+        !event.data ||
+        event.data.type !== 'pyanseshka:ready' ||
+        ready
+      ) {
+        return;
+      }
+
+      ready = true;
+      clearTimeout(slowTimer);
+      splash.classList.add('done');
+
+      setTimeout(() => {
+        splash.hidden = true;
+      }, 250);
+    });
+
+    function startLoading() {
+      ready = false;
+      clearTimeout(slowTimer);
+      retry.hidden = true;
+      status.textContent = 'Загружаем приложение…';
+      frame.src = frame.dataset.src;
+
+      slowTimer = setTimeout(() => {
+        if (ready) {
+          return;
+        }
+
+        status.textContent =
+          'Загрузка занимает больше времени. Проверьте соединение и попробуйте ещё раз.';
+
+        retry.hidden = false;
+      }, 30000);
+    }
+
+    retry.addEventListener('click', startLoading);
+    startLoading();
+  </script>
 </body>
 </html>
