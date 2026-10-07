@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#f5f2ee">
+
+  <!-- iPhone / iPad -->
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="default"
+  >
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="Пянсешка"
+  >
+
+  <!-- Android -->
+  <meta
+    name="application-name"
+    content="Пянсешка"
+  >
+
+  <!-- Иконка для iPhone -->
+  <link
+    rel="apple-touch-icon"
+    sizes="180x180"
+    href="./apple-touch-icon.png"
+  >
+
+  <!-- Иконки браузера -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="192x192"
+    href="./pyanse_icon_192.png"
+  >
+
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="512x512"
+    href="./pyanse_icon_512.png"
+  >
+
+  <!-- PWA -->
+  <link
+    rel="manifest"
+    href="./manifest.json"
+  >
+
+  <title>Пянсешка</title>
+
+  <style>
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: #f5f2ee;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Arial,
+        sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .app {
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+        env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #f5f2ee;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="app">
+    <iframe
+      title="Рабочая среда Пянсешка"
+      src="https://script.google.com/macros/s/AKfycbzMi9OtrEJZU7Uw1SxjLpPYdL664MANvYbwcFLZAMXzdOLmiJloMQxT1KR6Wl35-7Rp/exec"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads"
+    ></iframe>
+  </main>
+
+</body>
+</html>
