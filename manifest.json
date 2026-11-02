@@ -6,8 +6,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#9a191b",
-  "theme_color": "#9a191b",
+  "background_color": "#fff8ec",
+  "theme_color": "#fff8ec",
   "icons": [
     {
       "src": "./pyanseshka-premium-192-v8.png?v=20261016-premium-v8",
