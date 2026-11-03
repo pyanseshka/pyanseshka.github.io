@@ -129,6 +129,39 @@
       }, Math.max(0, (reducedMotion ? 1500 : 3600) - (performance.now() - introStarted)));
     }
 
+    // Долговечная очередь на основном домене PWA: не зависит от домена iframe Google.
+    let auditStorageDb;
+    function openAuditStorage() {
+      if (!auditStorageDb) auditStorageDb = new Promise((resolve,reject) => {
+        const request=indexedDB.open('pyanseshka-audits-v38',1);
+        request.onupgradeneeded=()=>request.result.createObjectStore('records',{keyPath:'key'});
+        request.onsuccess=()=>resolve(request.result);
+        request.onerror=()=>{auditStorageDb=null;reject(new Error('Не удалось открыть память приложения.'));};
+      });
+      return auditStorageDb;
+    }
+    async function handleAuditStorage(event) {
+      const d=event.data,response={type:'pyanseshka:audits:response',requestId:d.requestId,ok:false};
+      if(typeof d.requestId!=='string'||d.requestId.length>100||typeof d.owner!=='string'||!d.owner||d.owner.length>100)return;
+      if(!['ping','list','get','put','delete'].includes(d.operation))return;
+      try {
+        const db=await openAuditStorage();
+        if(d.operation!=='ping') {
+          if(d.operation!=='list'&&(typeof d.key!=='string'||!d.key||d.key.length>120))throw new Error('Некорректный ключ проверки.');
+          if(d.operation==='put'&&(!d.value||d.value.owner!==d.owner||d.value.key!==d.owner+'|'+d.key||d.value.requestId!==d.key))throw new Error('Некорректная запись проверки.');
+          response.value=await new Promise((resolve,reject)=>{
+            let result;const tx=db.transaction('records',['put','delete'].includes(d.operation)?'readwrite':'readonly'),store=tx.objectStore('records');let request;
+            if(d.operation==='put')request=store.put(d.value);else if(d.operation==='delete')request=store.delete(d.owner+'|'+d.key);else if(d.operation==='get')request=store.get(d.owner+'|'+d.key);else request=store.getAll();
+            request.onsuccess=()=>{result=request.result;if(d.operation==='list')result=result.filter(r=>r.owner===d.owner);};
+            tx.oncomplete=()=>resolve(result);tx.onerror=tx.onabort=()=>reject(new Error('Не удалось сохранить проверку на устройстве. Освободите память и повторите.'));
+          });
+        }
+        response.ok=true;
+        if(d.operation==='put'&&navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
+      } catch(error) {response.error=error.message;}
+      event.source.postMessage(response,event.origin);
+    }
+
     window.addEventListener('message', event => {
       let host;
 
@@ -146,6 +179,7 @@
           host.endsWith('.googleusercontent.com')
         );
 
+      if(trusted&&event.source&&event.data?.type==='pyanseshka:audits:request'){handleAuditStorage(event);return;}
       // Храним только токен на основном домене приложения.
       // Это не зависит от доступа iframe Google к стороннему хранилищу.
       if (trusted && event.source && event.data && event.data.type === 'pyanseshka:session:request') {
