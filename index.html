@@ -79,7 +79,7 @@
   </main>
 
   <script>
-    const frame = document.getElementById('appFrame');
+    let frame = document.getElementById('appFrame');
     const splash = document.getElementById('splash');
     const status = document.getElementById('splashStatus');
     const retry = document.getElementById('retry');
@@ -94,7 +94,7 @@
       const oldTheme = document.querySelector('meta[name="theme-color"]');
       const newTheme = document.createElement('meta');
       newTheme.name = 'theme-color'; newTheme.content = color;
-      oldTheme.replaceWith(newTheme);
+      if(oldTheme)oldTheme.replaceWith(newTheme);else document.head.appendChild(newTheme);
     }
     let revealTimer, exitTimer, hideTimer;
     let introStarted = performance.now();
@@ -119,13 +119,11 @@
         // Fade the welcome into its own background before revealing the form.
         splash.style.background = '#9a191b';
         splash.classList.add('leaving');
-        requestAnimationFrame(() => {
-          hideTimer = setTimeout(() => {
+        hideTimer = setTimeout(() => {
             applyChrome(appTheme);
             document.body.classList.add('app-ready');
             splash.hidden = true;
-          }, reducedMotion ? 0 : 420);
-        });
+        }, reducedMotion ? 0 : 420);
       }, Math.max(0, (reducedMotion ? 1500 : 3600) - (performance.now() - introStarted)));
     }
 
@@ -204,6 +202,7 @@
       }
 
       if (trusted && event.data && event.data.type === 'pyanseshka:theme') {
+        if(event.data.bootId&&event.data.bootId!==bootId)return;
         const color = event.data.color;
         if (color === '#9a191b' || color === '#f5f2ee' || color === '#fff8ec') {
           appTheme = color;
@@ -212,49 +211,47 @@
         }
         return;
       }
-      if (
-        !trusted ||
-        !event.data ||
-        event.data.type !== 'pyanseshka:ready' ||
-        ready
-      ) {
-        return;
-      }
-
+      if(!trusted||!event.source||!event.data)return;
+      const data=event.data,isCurrent=data.bootId===bootId,legacy=!data.bootId&&bootAttempt===1;
+      if(data.type==='pyanseshka:boot:hello'&&isCurrent){bootPeer=event.source;bootPeerOrigin=event.origin;if(!ready)bootPeer.postMessage({type:'pyanseshka:boot:probe',bootId},bootPeerOrigin);return;}
+      if(data.type!=='pyanseshka:ready'||(!isCurrent&&!legacy))return;
+      bootPeer=event.source;bootPeerOrigin=event.origin;
+      event.source.postMessage({type:'pyanseshka:ready:ack',bootId},event.origin);
       finishLoading();
     });
 
-    function startLoading() {
-      ready = false;
-      document.body.classList.remove('app-ready');
-      appTheme = '#9a191b';
-      applyChrome('#9a191b');
-      splash.hidden = false;
-      splash.style.background = '';
-      splash.querySelector('.welcome-center').style.opacity = '';
-      splash.classList.remove('done', 'is-slow', 'revealed', 'leaving');
-      clearTimeout(revealTimer); clearTimeout(exitTimer); clearTimeout(hideTimer);
-      introStarted = performance.now(); hapticSent = false;
-      requestAnimationFrame(() => { revealTimer = setTimeout(() => {
-        splash.classList.add('revealed'); welcomeHaptic();
-      }, reducedMotion ? 0 : 70); });
+    let bootAttempt=0,bootId='',bootPeer=null,bootPeerOrigin='',bootRetryDue=false;
+    const BOOT_WAIT_MS=20000,BOOT_MAX_ATTEMPTS=2;
+    function bootNonce(){return Date.now().toString(36)+'-'+(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2));}
+    function bootBlocked(){return navigator.onLine===false||document.hidden;}
+    function waitForBoot(){
       clearTimeout(slowTimer);
-      retry.hidden = true;
-      status.textContent = '';
-      frame.src = frame.dataset.src;
-
-      slowTimer = setTimeout(() => {
-        if (ready) return;
-
-        status.textContent =
-          'Загрузка занимает больше времени. Проверьте соединение и попробуйте ещё раз.';
-
-        
-        retry.hidden = false;
-      }, 30000);
+      slowTimer=setTimeout(()=>{
+        if(ready)return;
+        if(bootBlocked()){bootRetryDue=true;status.textContent=navigator.onLine===false?'Нет интернета. Подключитесь — загрузка продолжится автоматически.':'Загрузка продолжится при возвращении в приложение.';retry.hidden=false;return;}
+        if(bootAttempt<BOOT_MAX_ATTEMPTS){status.textContent='Соединяемся с приложением повторно…';launchBootAttempt();return;}
+        status.textContent='Приложение пока не ответило. Проверьте интернет и повторите загрузку.';retry.hidden=false;
+      },BOOT_WAIT_MS);
     }
-
-    retry.addEventListener('click', startLoading);
+    function launchBootAttempt(){
+      if(ready)return;
+      if(bootBlocked()){bootRetryDue=true;status.textContent=navigator.onLine===false?'Нет интернета. Загрузка продолжится после подключения.':'Загрузка продолжится при возвращении в приложение.';retry.hidden=false;return;}
+      bootRetryDue=false;bootAttempt++;bootId=bootNonce();bootPeer=null;bootPeerOrigin='';
+      const next=frame.cloneNode(false),url=new URL(frame.dataset.src);url.searchParams.set('_pyanseshka_boot',bootId);
+      next.src=url.href;frame.replaceWith(next);frame=next;retry.hidden=true;waitForBoot();
+    }
+    function startLoading(){
+      ready=false;bootAttempt=0;bootId='';bootPeer=null;bootRetryDue=false;
+      document.body.classList.remove('app-ready');appTheme='#9a191b';applyChrome('#9a191b');splash.hidden=false;splash.style.background='';
+      splash.querySelector('.welcome-center').style.opacity='';splash.classList.remove('done','is-slow','revealed','leaving');
+      clearTimeout(revealTimer);clearTimeout(exitTimer);clearTimeout(hideTimer);clearTimeout(slowTimer);introStarted=performance.now();hapticSent=false;
+      requestAnimationFrame(()=>{revealTimer=setTimeout(()=>{splash.classList.add('revealed');welcomeHaptic();},reducedMotion?0:70);});
+      status.textContent='';retry.hidden=true;launchBootAttempt();
+    }
+    function resumeBoot(){if(ready||bootBlocked())return;if(bootRetryDue||bootAttempt===0)launchBootAttempt();else if(bootPeer)bootPeer.postMessage({type:'pyanseshka:boot:probe',bootId},bootPeerOrigin);}
+    window.addEventListener('online',resumeBoot);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeBoot();});
+    retry.addEventListener('click',startLoading);
     startLoading();
   </script>
 </body>
