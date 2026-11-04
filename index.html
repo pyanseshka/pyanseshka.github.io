@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-release="40">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
@@ -38,13 +38,15 @@
 
 
 :root{color-scheme:light;--red:#9a191b;--cream:#fff8ec;--chrome:#9a191b}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--chrome);font-family:OnestLoader,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{height:100vh;height:100dvh;overflow:hidden}.chrome-edge{position:fixed;left:0;right:0;z-index:200;pointer-events:none;background:var(--chrome)}.chrome-top{top:0;height:env(safe-area-inset-top,0px)}.chrome-bottom{bottom:0;height:env(safe-area-inset-bottom,0px)}.app{width:100%;height:100%;background:var(--chrome);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}iframe{display:block;width:100%;height:100%;border:0;background:var(--cream);opacity:0;pointer-events:none}body.app-ready iframe{opacity:1;pointer-events:auto}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--chrome);font-family:OnestLoader,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{height:100vh;height:100dvh;overflow:hidden}.chrome-edge{position:fixed;left:0;right:0;z-index:200;pointer-events:none;background:var(--chrome)}.chrome-top{top:0;height:env(safe-area-inset-top,0px)}.chrome-bottom{bottom:0;height:env(safe-area-inset-bottom,0px)}.app{width:100%;height:100%;background:var(--chrome);padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}iframe{display:block;width:100%;height:100%;border:0;background:var(--cream);opacity:1;pointer-events:none}body.app-ready iframe{opacity:1;pointer-events:auto}
 .splash{position:fixed;inset:0;z-index:100;overflow:hidden;isolation:isolate;background:var(--red);color:var(--cream);opacity:1;transition:opacity .5s ease}.splash.leaving .welcome-center{transition:opacity .35s ease!important;opacity:0!important}.splash.done{opacity:0;pointer-events:none}.splash[hidden],[hidden]{display:none!important}
 .heart-bloom{position:absolute;left:50%;top:50%;width:100vmax;height:100vmax;transform:translate(-50%,-50%) scale(.078);transform-origin:center;will-change:transform;pointer-events:none;opacity:1;transition:transform 1.5s cubic-bezier(.2,.7,.2,1),opacity .55s ease .8s}.heart-bloom path{fill:var(--cream)}.revealed .heart-bloom{transform:translate(-50%,-50%) scale(.312);opacity:0}
 .welcome-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(42px + env(safe-area-inset-top)) 24px calc(42px + env(safe-area-inset-bottom));text-align:center;z-index:2;opacity:0;transform:translateY(12px);transition:opacity .75s ease 1.1s,transform .9s cubic-bezier(.2,.8,.2,1) 1.1s}.revealed .welcome-center{opacity:1;transform:none}.splash-brand{display:block;width:min(79vw,370px);height:auto}.splash-brand path,.splash-heart path{fill:var(--cream)}.welcome-message{font-size:clamp(19px,5vw,27px);font-weight:400;line-height:1.4;letter-spacing:.055em;margin:28px 0 0}.welcome-heart{width:19px;height:29px;margin-top:46px;animation:soft-heart 2.6s ease-in-out infinite}.welcome-heart svg{display:block;width:100%;height:100%}.welcome-status{max-width:300px;margin:24px 0 0;font-size:13px;line-height:1.6;color:var(--cream);opacity:.8}.welcome-status:empty{display:none}.retry{margin-top:16px;min-height:48px;padding:12px 22px;border:1px solid var(--red);border-radius:100px;background:var(--cream);color:var(--red);font:inherit;font-size:15px;cursor:pointer}.retry:focus-visible{outline:2px solid var(--red);outline-offset:4px}
 @keyframes soft-heart{0%,100%{transform:scale(1)}50%{transform:scale(.88)}}
 @media(max-height:480px){.splash-brand{width:min(62vw,260px)}.welcome-message{font-size:18px;margin-top:18px}.welcome-heart{height:29.9px;margin-top:16px}}
 @media(prefers-reduced-motion:reduce){.heart-bloom,.welcome-center,.splash{transition:none}.heart-bloom{will-change:auto}.welcome-heart{animation:none}.welcome-center{transform:none}}
+
+.boot-help{position:fixed;z-index:210;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:calc(12px + env(safe-area-inset-top));max-width:520px;margin:auto;padding:16px 44px 16px 18px;border:1px solid #9a191b22;border-radius:20px;background:#fff8ec;color:#9a191b;box-shadow:0 8px 32px #0002;font-size:15px;line-height:1.45}.boot-help p{margin:0 0 10px}.boot-help a{display:inline-block;background:#9a191b;color:#fff8ec;border-radius:12px;padding:10px 14px;text-decoration:none;font-size:16px}.boot-help button{position:absolute;right:8px;top:6px;border:0;background:transparent;color:inherit;font:inherit;font-size:26px;width:36px;height:36px;cursor:pointer}
 </style>
 </head>
 
@@ -69,6 +71,11 @@
     </div>
   </section>
 
+  <aside class="boot-help" id="bootHelp" aria-label="Помощь при запуске" hidden>
+    <button type="button" id="dismissBootHelp" aria-label="Закрыть подсказку">×</button>
+    <p id="bootHelpText">Показываем окно приложения. Если вход не появился, откройте его напрямую.</p>
+    <a id="directEntry" target="_blank" rel="noopener">Открыть напрямую</a>
+  </aside>
   <main class="app">
     <iframe
       id="appFrame"
@@ -84,6 +91,11 @@
     const status = document.getElementById('splashStatus');
     const retry = document.getElementById('retry');
 
+    const bootHelp=document.getElementById('bootHelp');
+    const bootHelpText=document.getElementById('bootHelpText');
+    document.getElementById('directEntry').href=frame.dataset.src;
+    document.getElementById('dismissBootHelp').addEventListener('click',()=>{bootHelp.hidden=true;});
+    let windowShown=false;
     let slowTimer;
     let ready = false;
     let appTheme = '#9a191b';
@@ -112,7 +124,9 @@
     function finishLoading() {
       if (ready) return;
       ready = true;
+      bootHelp.hidden=true;
       clearTimeout(slowTimer);
+      if(windowShown){applyChrome(appTheme);return;}
       retry.hidden = true;
       status.textContent = '';
       exitTimer = setTimeout(() => {
@@ -221,16 +235,27 @@
     });
 
     let bootAttempt=0,bootId='',bootPeer=null,bootPeerOrigin='',bootRetryDue=false;
-    const BOOT_WAIT_MS=20000,BOOT_MAX_ATTEMPTS=2;
+    const BOOT_WAIT_MS=12000;
     function bootNonce(){return Date.now().toString(36)+'-'+(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2));}
     function bootBlocked(){return navigator.onLine===false||document.hidden;}
+    // Readiness and visibility are separate: a missing message must not hide
+    // a usable form (or Google's own error). Never reload a slow frame on a timer.
+    function showAppWindow(){
+      if(ready||windowShown)return;
+      windowShown=true;
+      clearTimeout(revealTimer);clearTimeout(exitTimer);clearTimeout(hideTimer);
+      applyChrome(appTheme);document.body.classList.add('app-ready');splash.hidden=true;
+      bootHelpText.textContent=navigator.onLine===false
+        ?'Нет соединения. Окно продолжит загружаться после подключения.'
+        :'Показываем окно приложения. Если вход не появился, откройте его напрямую.';
+      bootHelp.hidden=false;
+    }
     function waitForBoot(){
       clearTimeout(slowTimer);
       slowTimer=setTimeout(()=>{
         if(ready)return;
-        if(bootBlocked()){bootRetryDue=true;status.textContent=navigator.onLine===false?'Нет интернета. Подключитесь — загрузка продолжится автоматически.':'Загрузка продолжится при возвращении в приложение.';retry.hidden=false;return;}
-        if(bootAttempt<BOOT_MAX_ATTEMPTS){status.textContent='Соединяемся с приложением повторно…';launchBootAttempt();return;}
-        status.textContent='Приложение пока не ответило. Проверьте интернет и повторите загрузку.';retry.hidden=false;
+        if(document.hidden){bootRetryDue=true;return;}
+        showAppWindow();
       },BOOT_WAIT_MS);
     }
     function launchBootAttempt(){
@@ -241,14 +266,20 @@
       next.src=url.href;frame.replaceWith(next);frame=next;retry.hidden=true;waitForBoot();
     }
     function startLoading(){
-      ready=false;bootAttempt=0;bootId='';bootPeer=null;bootRetryDue=false;
+      ready=false;windowShown=false;bootHelp.hidden=true;bootAttempt=0;bootId='';bootPeer=null;bootRetryDue=false;
       document.body.classList.remove('app-ready');appTheme='#9a191b';applyChrome('#9a191b');splash.hidden=false;splash.style.background='';
       splash.querySelector('.welcome-center').style.opacity='';splash.classList.remove('done','is-slow','revealed','leaving');
       clearTimeout(revealTimer);clearTimeout(exitTimer);clearTimeout(hideTimer);clearTimeout(slowTimer);introStarted=performance.now();hapticSent=false;
       requestAnimationFrame(()=>{revealTimer=setTimeout(()=>{splash.classList.add('revealed');welcomeHaptic();},reducedMotion?0:70);});
       status.textContent='';retry.hidden=true;launchBootAttempt();
     }
-    function resumeBoot(){if(ready||bootBlocked())return;if(bootRetryDue||bootAttempt===0)launchBootAttempt();else if(bootPeer)bootPeer.postMessage({type:'pyanseshka:boot:probe',bootId},bootPeerOrigin);}
+    function resumeBoot(){
+      if(ready||bootBlocked())return;
+      if(bootAttempt===0){launchBootAttempt();return;}
+      if(bootPeer)bootPeer.postMessage({type:'pyanseshka:boot:probe',bootId},bootPeerOrigin);
+      // Keep the existing frame and any form data when returning from background.
+      if(bootRetryDue){bootRetryDue=false;showAppWindow();}
+    }
     window.addEventListener('online',resumeBoot);
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)resumeBoot();});
     retry.addEventListener('click',startLoading);
